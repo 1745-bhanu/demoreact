@@ -4,6 +4,7 @@ function App() {
   const [apiData, setApiData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [chartPath, setChartPath] = useState(null);
 
   useEffect(() => {
     const fetchApiData = async () => {
@@ -14,11 +15,15 @@ function App() {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const jsonData = await response.json();
-        setApiData(jsonData);
+        setApiData(jsonData); // Save the fetched data
         console.log('Fetched data:', jsonData);
         
         // Send data to the backend
-        await sendDataToBackend(jsonData);
+        const chartResponse = await sendDataToBackend(jsonData);
+        if (chartResponse.bar_chart_path) { // Check if the response contains the path to the bar chart
+          // Ensure to include the port number for the Flask server
+          setChartPath(`http://localhost:5001/${chartResponse.bar_chart_path}`);
+        }
       } catch (err) {
         console.error('Error fetching data from API:', err);
         setError(err);
@@ -42,6 +47,7 @@ function App() {
 
       const result = await response.json();
       console.log('Response from backend:', result);
+      return result; // Return the result to access bar_chart_path
     } catch (error) {
       console.error('Error sending data to backend:', error);
     }
@@ -53,7 +59,18 @@ function App() {
   return (
     <div>
       <h1>Fetched Data</h1>
-      <pre>{JSON.stringify(apiData, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(apiData, null, 2)}</pre> */}
+      {chartPath && (
+        <div>
+          <h2>Bar Chart</h2>
+          <img 
+            src={chartPath} 
+            alt="Bar Chart" 
+            style={{ width: '600px', height: 'auto' }} // Adjust size as needed
+            onError={(e) => { e.target.src = 'fallback-image-url'; }} // Add a fallback image if needed
+          />
+        </div>
+      )}
     </div>
   );
 }
