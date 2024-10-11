@@ -40,6 +40,7 @@ def receive_api_data():
     # Normalize the nested structure of the JSON data
     df = pd.json_normalize(api_data)
 
+    # printing the first 2 rows of the dataframe
     print(df.head(2))
 
     return jsonify({"message": "API data received successfully", "received": api_data})
